@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Dict, Any, List
 
 try:
+    from dotenv import load_dotenv
     from isodate import parse_duration
     from rich.align import Align
     from rich.console import Console, Group
@@ -34,6 +35,8 @@ from omega_moderne_client.client.client_types import RecipeRunSummary, Repositor
 from omega_moderne_client.repository_filter import Filter, FilterDetailedReason, FilterReason, \
     FilteredRecipeExecutionResult
 from omega_moderne_client.util import verbose_timedelta, headers
+
+load_dotenv()
 
 console = Console()
 HEADER = headers.HEADER_NORMAL
@@ -175,7 +178,7 @@ async def create_pull_request_for_recipe_results(
 
 async def run_recipe_maybe_generate_prs(args):
     if args.generate_prs:
-        gpg_key_config = GpgKeyConfig.load_from_env()
+        gpg_key_config = GpgKeyConfig.load_from_gnugpg_env()
         console.print("Generate prs enabled. Pull requests will be created!")
     else:
         console.print("Generate prs not enabled. No pull requests will be created!")
@@ -216,7 +219,7 @@ async def run_recipe_maybe_generate_prs(args):
 
 async def recipe_attach(args):
     if args.generate_prs:
-        gpg_key_config = GpgKeyConfig.load_from_env()
+        gpg_key_config = GpgKeyConfig.load_from_gnugpg_env()
     else:
         gpg_key_config = None
 

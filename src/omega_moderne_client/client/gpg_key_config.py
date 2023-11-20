@@ -1,4 +1,5 @@
 import os
+import gnupg
 from dataclasses import dataclass
 from typing import List
 
@@ -16,7 +17,7 @@ class GpgKeyConfig:
             "GPG_KEY_PRIVATE_KEY",
             "GPG_KEY_PUBLIC_KEY"
         )
-        return GpgKeyConfig(
+        return cls(
             key_passphrase=env_vars[0],
             key_private_key=env_vars[1],
             key_public_key=env_vars[2]
@@ -36,3 +37,25 @@ class GpgKeyConfig:
         if missing_env_var_names:
             raise ValueError(f"Environment variables {missing_env_var_names} are not set")
         return present_env_vars
+
+    @classmethod
+    def load_from_gnugpg(cls, keyid: str, passphrase: str) -> 'GpgKeyConfig':
+        gpg = gnupg.GPG()
+        ascii_armored_public_keys = gpg.export_keys(keyid)
+        ascii_armored_private_keys = gpg.export_keys(keyid, secret=True, passphrase=passphrase)
+        return cls(
+            key_passphrase=passphrase,
+            key_private_key=ascii_armored_private_keys,
+            key_public_key=ascii_armored_public_keys
+        )
+
+    @classmethod
+    def load_from_gnugpg_env(cls) -> 'GpgKeyConfig':
+        env_vars = cls._load_env_variables(
+            "GPG_KEY_ID",
+            "GPG_KEY_PASSPHRASE"
+        )
+        return cls.load_from_gnugpg(
+            keyid=env_vars[0],
+            passphrase=env_vars[1]
+        )

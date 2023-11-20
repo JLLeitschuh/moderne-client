@@ -9,6 +9,15 @@ interface CommitOptions {
     branchName: String
 }
 
+interface PullRequestAction {
+    createdAt: DateTime!
+    pullRequestUrl: String!
+    repository: Repository!
+    state: TaskState!
+    stateMessage: String
+    updatedAt: DateTime!
+}
+
 interface Repository {
     branch: String
     origin: String
@@ -19,9 +28,13 @@ interface Repository {
 interface ToolConfiguration {
     "Agents that this tool is configured on"
     agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     id: ID!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     "A valid URL, including scheme"
     resourceId: String!
     "If `true`, Moderne has successfully validated the configuration and possibly connectivity to this tool."
@@ -52,6 +65,7 @@ type AccessToken {
 type Agent {
     id: ID!
     nickname: String
+    tenantDomain: String
     tools: [ToolConfiguration!]!
     version: String!
 }
@@ -65,6 +79,16 @@ type AgentIndexConnection {
 type AgentIndexEdge {
     cursor: String
     node: Agent!
+}
+
+type ApproveAction implements PullRequestAction {
+    createdAt: DateTime!
+    "Url of the pull request, used for determining the id."
+    pullRequestUrl: String!
+    repository: Repository!
+    state: TaskState!
+    stateMessage: String
+    updatedAt: DateTime!
 }
 
 type ArtifactDiagnostics {
@@ -104,10 +128,14 @@ type ArtifactoryConfiguration implements ToolConfiguration {
     artifactStats: [ArtifactStats!]!
     "The query used to find artifacts in this Artifactory instance"
     astQuery: String
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     "A valid URL, including scheme"
     resourceId: String!
     "If `true`, Moderne has successfully validated the configuration and possibly connectivity to this tool."
@@ -173,12 +201,16 @@ type AstRepository {
 type BitbucketCloudConfiguration implements ToolConfiguration {
     "Instances of the Moderne Agent where this tool has been configured"
     agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "Whether the current user has an active OAUth authorization"
     isAuthorized: Boolean!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     "Only used for Bitbucket Cloud"
     oauth: OAuthConfiguration
     "A valid URL, including scheme"
@@ -211,12 +243,16 @@ type BitbucketConfiguration implements ToolConfiguration {
     agents(after: String, first: Int): AgentIndexConnection!
     "Alternative URLS that can be used to access this Bitbucket instance"
     alternateUrls: [String!]!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "Whether the current user has an active OAUth authorization"
     isAuthorized: Boolean!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     "A valid URL, including scheme"
     resourceId: String!
     ssh: SshConfiguration
@@ -246,6 +282,16 @@ type BranchCommitOptions implements CommitOptions {
     branchName: String
 }
 
+type CloseAction implements PullRequestAction {
+    createdAt: DateTime!
+    "Url of the pull request, used for determining the id."
+    pullRequestUrl: String!
+    repository: Repository!
+    state: TaskState!
+    stateMessage: String
+    updatedAt: DateTime!
+}
+
 type Column {
     description: String!
     displayName: String!
@@ -254,11 +300,15 @@ type Column {
 }
 
 type Commit {
-    modified: DateTime!
+    commitType: CommitType!
+    createdAt: DateTime!
+    modified: DateTime! @deprecated(reason: "Use updatedAt instead.")
+    pullRequestStatus: PullRequestStatus
     repository: Repository!
     resultLink: String
     state: CommitState!
     stateMessage: String
+    updatedAt: DateTime!
 }
 
 type CommitConnection {
@@ -281,6 +331,8 @@ type CommitJob {
     id: ID!
     message: String!
     options: CommitOptions!
+    organization: String
+    pullRequestActionJobs(after: String, first: Int = 50, type: PullRequestActionType!): PullRequestActionJobConnection!
     recipeRunId: ID!
     started: DateTime!
     state: CommitJobState!
@@ -444,6 +496,23 @@ type ForkPullRequestOptions implements CommitOptions {
     pullRequestTitle: String
 }
 
+type GenericHttpToolConfiguration implements ToolConfiguration {
+    "Instances of the Moderne Agent where this tool has been configured"
+    agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
+    " Shared fields"
+    id: ID!
+    "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
+    isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
+    "A valid URL, including scheme"
+    resourceId: String!
+    "If `true`, Moderne has successfully validated the configuration and possibly connectivity to this tool."
+    valid: Boolean!
+}
+
 type GitHubRepository implements Repository {
     branch: String
     changeset: String
@@ -463,12 +532,16 @@ type GitHubRepository implements Repository {
 type GitLabConfiguration implements ToolConfiguration {
     "Instances of the Moderne Agent where this tool has been configured"
     agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "Whether the current user has an active OAUth authorization"
     isAuthorized: Boolean!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     oauth: OAuthConfiguration
     "A valid URL, including scheme"
     resourceId: String!
@@ -507,12 +580,16 @@ type GithubConfiguration implements ToolConfiguration {
     agents(after: String, first: Int): AgentIndexConnection!
     "A list of organizations that Moderne is permitted to fork repositories into"
     allowableOrganizations: [String!]!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "Whether the current user has an active OAUth authorization"
     isAuthorized: Boolean!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     oauth: OAuthConfiguration
     "A valid URL, including scheme"
     resourceId: String!
@@ -533,10 +610,14 @@ type GroupArtifactVersion {
 type JenkinsConfiguration implements ToolConfiguration {
     "Instances of the Moderne Agent where this tool has been configured"
     agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     "A valid URL, including scheme"
     resourceId: String!
     "If `true`, Moderne has successfully validated the configuration and possibly connectivity to this tool."
@@ -553,12 +634,16 @@ type MavenConfiguration implements ToolConfiguration {
     agents(after: String, first: Int): AgentIndexConnection!
     " Maven-specific fields"
     artifactStats: [ArtifactStats!]!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     isArtifactSource: Boolean!
     isRecipeSource: Boolean!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     localRepository: Path!
     "Attempt to connect to this maven repository and share the results."
     mavenResponseStatus: MavenResponseStatus!
@@ -590,7 +675,25 @@ type MavenResponseStatus {
     unsupportedReasons: [String!]
 }
 
+type MergeAction implements PullRequestAction {
+    createdAt: DateTime!
+    options: MergeOptions!
+    "Url of the pull request, used for determining the id."
+    pullRequestUrl: String!
+    repository: Repository!
+    state: TaskState!
+    stateMessage: String
+    updatedAt: DateTime!
+}
+
+type MergeOptions {
+    deleteSourceBranch: Boolean!
+    mergeMethod: MergeMethod!
+}
+
 type Mutation {
+    "Mass approve pull requests. Currently only Github is supported."
+    approvePullRequests(approvalJobInput: ApprovalJobInput!): PullRequestActionJob!
     """
 
     Attempt to cancel all runs for all users.
@@ -608,6 +711,7 @@ type Mutation {
     """
     cancelAllActiveRunsForUser: Boolean
     cancelCommitJob(id: ID!): CommitJob!
+    cancelPullRequestActionJob(id: ID!): PullRequestActionJob!
     """
 
     Attempt to cancel the given run.
@@ -618,6 +722,8 @@ type Mutation {
     cancelRecipeRun(id: ID!): ID!
     cancelRecipeRunValidation(id: ID!): Boolean!
     cancelVisualizationRun(id: ID!): VisualizationRun!
+    "Mass close pull requests."
+    closePullRequests(closeJobInput: CloseJobInput!): PullRequestActionJob!
     "Push a branch to the origin remote."
     commit(
         commit: CommitInput,
@@ -672,6 +778,8 @@ type Mutation {
         "Example: `moderne-public/cobol-sample-repo/`"
         location: String!
     ): Boolean
+    "Remove visualizations by package name."
+    deleteVisualizationArtifact(name: String!): Boolean
     """
 
     Download a report of all commits, successful and failed, since `since` (default: 30 days ago)
@@ -681,12 +789,7 @@ type Mutation {
     """
     downloadCommitsReport(since: DateTime): CommitsReportDownloadTask!
     "Initiate a download task (requires polling `dataTableDownload` query to check for completion)"
-    downloadDataTable(
-        dataTable: String!,
-        "Supports CSV & EXCEL"
-        format: DataTableFormat! = CSV,
-        recipeRunId: ID!
-    ): DataTableDownloadTask!
+    downloadDataTable(dataTable: String!, format: DataTableFormat! = CSV, recipeRunId: ID!, validateDataTableName: Boolean! = true): DataTableDownloadTask!
     "Initiate a download task of all recipe runs in the past three days (requires polling `recipeRunReportDownload` query to check for completion)"
     downloadRecipeRunReport: RecipeRunReportDownloadTask!
     """
@@ -799,7 +902,6 @@ type Mutation {
     ): String!
     "Manually run an indexing operation."
     index(
-        after: String,
         """
 
         If `true`, performs list and describe operations on the artifact repository, but does not update that database or download any artifacts.
@@ -830,10 +932,13 @@ type Mutation {
         """
         modifiedSince: DateTime
     ): AstIndexConnection!
-    loadRecipes(artifactId: String!, datedSnapshotVersion: String, groupId: String!, trace: Boolean = false, version: String!): RecipeArtifact @deprecated(reason: "use `loadRecipesAsync` instead")
     loadRecipesAsync(artifactId: String!, datedSnapshotVersion: String, groupId: String!, trace: Boolean = false, version: String!): RecipeDeploymentResult!
     "Load visualizations from a PyPI package repository."
     loadVisualizations(name: String!, version: String): VisualizationDeploymentResult!
+    "Load visualization from PyPI package asynchronously."
+    loadVisualizationsAsync(name: String!, version: String): VisualizationDeploymentResult!
+    "Mass merge pull requests."
+    mergePullRequests(mergeJobInput: MergeJobInput!): PullRequestActionJob!
     "Open a pull request from a branch pushed to the origin remote."
     pullRequest(
         """
@@ -864,7 +969,15 @@ type Mutation {
     "Queue up validation jobs for validating project builds with recipe changes. Incubating and admin only."
     queueRecipeRunValidation(validationInput: RecipeValidationInput!): Boolean!
     refreshOrganizations: Boolean!
+    "Report a build result from the Moderne CLI."
+    reportModerneCliBuildResult(input: CliBuildResultInput!): Boolean!
     rerunFailedCommitJob(gpgKeys: GpgInput, id: ID!, scmAccessTokens: [ScmAccessToken!]): ID!
+    """
+
+    Rerunning a failed pull request action job does not create a new job, it resets any tasks in
+    FAILED, ORPHANED or CANCELED statuses
+    """
+    rerunFailedPullRequestActionJob(id: ID!): ID!
     "Revokes a Moderne Personal Access Token."
     revokeAccessToken(id: ID!): Boolean!
     "Remove all your active SCM OAuth tokens from the platform."
@@ -896,7 +1009,7 @@ type Mutation {
         recipeRunId: String,
         visualizationId: ID!
     ): VisualizationRun!
-    runYamlRecipe(organizationId: ID, priority: RecipeRunPriority = NORMAL, repositoryFilter: [RepositoryInput!], yaml: Base64!): RecipeRun!
+    runYamlRecipe(organizationId: ID, priority: RecipeRunPriority = NORMAL, repositoryFilter: [RepositoryInput!], sourceFileFilter: SourceFileFilter, yaml: Base64!): RecipeRun!
     unquarantineRepository(repositoryInput: RepositoryInput!): Repository
 }
 
@@ -922,6 +1035,7 @@ type Organization {
     commitOptions: [CommitOption!]!
     id: ID!
     name: String!
+    parent: Organization
     repositories: [Repository!]! @deprecated(reason: "Use repositoriesPages instead.")
     repositoriesPages(after: String, filter: RepositoryFilter = {showOrphaned: false, sortBy: PATH, sortOrder: ASC}, first: Int = 100): RepositoryConnection!
     repositoryCount: Int! @deprecated(reason: "Use repositoriesPaged.count instead.")
@@ -930,10 +1044,14 @@ type Organization {
 type OrganizationConfiguration implements ToolConfiguration {
     "Instances of the Moderne Agent where this tool has been configured"
     agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
     " Shared fields"
     id: ID!
     "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
     isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
     "A valid URL, including scheme"
     resourceId: String!
     "If `true`, Moderne has successfully validated the configuration and possibly connectivity to this tool."
@@ -968,6 +1086,47 @@ type PageInfo {
     startCursor: String
 }
 
+type PullRequestActionConnection {
+    count: Int
+    edges: [PullRequestActionEdge!]
+    pageInfo: PageInfo
+}
+
+type PullRequestActionEdge {
+    cursor: String
+    node: PullRequestAction!
+}
+
+type PullRequestActionJob {
+    commitJobId: ID!
+    completed: Int!
+    createdAt: DateTime!
+    email: String!
+    id: ID!
+    state: JobState!
+    summaryResults: PullRequestActionJobSummary!
+    tasks(after: String, filterBy: PullRequestActionJobFilterInput, first: Int = 50, orderBy: PullRequestActionJobOrderInput = {direction: DESC, field: UPDATED_AT}): PullRequestActionConnection
+    type: PullRequestActionType!
+}
+
+type PullRequestActionJobConnection {
+    count: Int
+    edges: [PullRequestActionJobEdge!]
+    pageInfo: PageInfo
+}
+
+type PullRequestActionJobEdge {
+    cursor: String
+    node: PullRequestActionJob!
+}
+
+type PullRequestActionJobSummary {
+    canceledCount: Int!
+    count: Int!
+    failedCount: Int!
+    successfulCount: Int!
+}
+
 type PullRequestOptions implements CommitOptions {
     autoMergeMethod: MergeMethod
     branchName: String
@@ -983,6 +1142,33 @@ type PullRequestStatistics {
     id: ID!
     origin: String
     type: PullRequestState!
+}
+
+type PullRequestStatus {
+    ciState: CiState
+    "Can this pull request be merged or not"
+    mergeable: Mergeable!
+    "Additional status flags that block this pull request. Can depend on the SCM service provider."
+    otherBlockingReasons: [String!]!
+    review: ReviewStatus!
+    state: PullRequestState!
+}
+
+type PypiConfiguration implements ToolConfiguration {
+    "Instances of the Moderne Agent where this tool has been configured"
+    agents(after: String, first: Int): AgentIndexConnection!
+    "Verify that agent can connect to this tool"
+    canConnect: [ToolConnectivity!]!
+    " Shared fields"
+    id: ID!
+    "If `true`, Moderne will not validate SSL certificates when connecting to this tool."
+    isSkipSsl: Boolean!
+    "If `true`, Moderne will not validate connectivity to this tool."
+    isSkipValidateConnectivity: Boolean!
+    "A valid URL, including scheme"
+    resourceId: String!
+    "If `true`, Moderne has successfully validated the configuration and possibly connectivity to this tool."
+    valid: Boolean!
 }
 
 type Query {
@@ -1007,6 +1193,8 @@ type Query {
     allVisualizationRunHistory(after: String, before: String, filter: VisualizationRunFilter, first: Int = 50, last: Int, sortOrder: SortOrder = DESC): VisualizationRunConnection!
     "Set of diagnostic queries to better understand the state of artifacts in the platform"
     artifactDiagnostics: ArtifactDiagnostics!
+    "Can be used to determine if the current user is able to deploy any recipes."
+    canDeploy: Boolean!
     "Returns the categories with associated recipes or subcategories."
     categories(categoryId: ID): [RecipeCategory!]!
     commitJob(id: ID!): CommitJob
@@ -1074,6 +1262,7 @@ type Query {
     ): [Organization!]!
     "Get all recipe runs by a user id (passed via header) sorted by most recent."
     previousRecipeRuns(after: String, before: String, filterBy: RecipeRunFilterInput, first: Int = 50, last: Int, sortOrder: SortOrder = DESC): RecipeRunHistoryConnection!
+    pullRequestActionJob(id: ID!): PullRequestActionJob!
     pullRequestStatistics(origin: String!, query: String!): [PullRequestStatistics!]!
     quarantinedRepositories: [Repository!]
     """
@@ -1108,7 +1297,7 @@ type Query {
     "Returns configuration for all SCM providers that have been configured through the Moderne Agent."
     scms: [ScmConfiguration!]!
     "Search for recipes matching the supplied search query."
-    searchRecipes(after: String, first: Int = 50, query: String!, sortBy: RecipeSortKey = DEFAULT, sortOrder: SortOrder = DESC): RecipeSearchConnection!
+    searchRecipes(after: String, featureAi: Boolean = false, first: Int = 50, query: String!, sortBy: RecipeSortKey = DEFAULT, sortOrder: SortOrder = DESC): RecipeSearchConnection!
     "Return statistics about the number of recipes and the number of repositories"
     statistics: ServiceStatistics!
     """
@@ -1123,6 +1312,8 @@ type Query {
     verifyToken(origin: String!, scmType: ScmType!): String
     visualization(id: ID!): Visualization!
     visualizationCategories(categoryId: ID): [VisualizationCategory!]!
+    visualizationDeployment(id: String!): VisualizationDeploymentResult
+    visualizationDeployments(state: VisualizationDeploymentState): [VisualizationDeploymentResult!]!
     visualizationRun(id: ID!): VisualizationRun!
     "The users visualization history, filtered to a particular visualization and/or organization if provided."
     visualizationRunHistory(after: String, before: String, filter: VisualizationRunFilter, first: Int = 50, last: Int, organizationId: ID, recipeRunId: ID, sortOrder: SortOrder = DESC, visualizationId: ID): VisualizationRunConnection!
@@ -1196,11 +1387,13 @@ type RecipeCategoryBreadcrumb {
 type RecipeDeploymentResult {
     "Will be set if and only if `state` is `FINISHED`."
     artifact: RecipeArtifact
+    canDeploy: Boolean
     duration: Duration
     id: ID!
     start: DateTime
     state: RecipeDeploymentState!
     stateMessage: String
+    tenantDomain: String
     "Trace information about how recipe artifact resolution proceeded."
     trace: [String!]
 }
@@ -1211,6 +1404,7 @@ type RecipeRun {
     id: ID!
     "The id of the organization the recipe was ran under."
     organizationId: ID
+    priority: RecipeRunPriority!
     recipe: Recipe!
     start: DateTime!
     state: RecipeRunState!
@@ -1268,6 +1462,8 @@ type RecipeRunSummary {
     "The id of the organization the recipe was ran under."
     organizationId: ID
     performance: RecipeRunPerformance
+    "Position in the worker queue or null if not queued."
+    queuePosition: Int
     repository: Repository!
     runId: ID!
     state: RecipeRunSummaryState!
@@ -1376,6 +1572,12 @@ type RepositoryProvenance {
     changeset: String
 }
 
+type ReviewStatus {
+    approvedBy: [String!]
+    "sub data fetcher if needed"
+    reviewDecision: ReviewDecision!
+}
+
 type ServiceStatistics {
     "Total number of recipes in the tenant"
     recipeCount: Int!
@@ -1389,6 +1591,13 @@ type SshConfiguration {
     port: Int
 }
 
+type ToolConnectivity {
+    agentId: ID!
+    isConnected: Boolean! @deprecated(reason: "Use status instead")
+    message: String @deprecated(reason: "Use status instead")
+    status: ToolConnectivityStatus!
+}
+
 type Visualization {
     dataTable: DataTable!
     description: Markdown!
@@ -1400,8 +1609,10 @@ type Visualization {
 }
 
 type VisualizationArtifact {
+    indexUrl: String
+    installedVersion: String
     name: String!
-    version: String!
+    requestedVersion: String
     visualizations: [Visualization!]!
 }
 
@@ -1416,8 +1627,8 @@ type VisualizationCategory {
 }
 
 type VisualizationDeploymentResult {
-    "Will be set if and only if `state` is `FINISHED`."
     artifact: VisualizationArtifact
+    duration: Duration
     id: ID!
     start: DateTime
     state: VisualizationDeploymentState!
@@ -1511,10 +1722,29 @@ enum AuditLogFilterColumns {
     USER_ID
 }
 
+enum CiState {
+    FAILED
+    IN_PROGRESS
+    NOT_REQUIRED
+    PENDING
+    SKIPPED
+    SUCCESSFUL
+}
+
+enum CliBuildToolStep {
+    Bazel
+    Gradle
+    Maven
+    Modjava
+    Native
+}
+
 enum CommitJobOrderField {
+    "MODIFIED is deprecated, please use UPDATED_AT"
     MODIFIED
     REPOSITORY
     STATE
+    UPDATED_AT
 }
 
 enum CommitJobState {
@@ -1581,6 +1811,13 @@ enum CommitState {
     PROCESSING
     "A commit that is waiting to be processed."
     QUEUED
+}
+
+enum CommitType {
+    DIRECT
+    FORK
+    FORK_AND_PULL_REQUEST
+    PULL_REQUEST
 }
 
 enum CommitsReportTaskState {
@@ -1868,6 +2105,26 @@ enum ErrorType {
     UNKNOWN
 }
 
+enum JobState {
+    """
+
+    Represents a job that was canceled.
+
+    The job may have some tasks that were successfully processed and some that were not.
+    """
+    CANCELED
+    "All tasks failed."
+    FAILED
+    "Has tasks either waiting to be processed or actively being processed."
+    IN_PROGRESS
+    "All tasks have finished processing and more than 50% were failures."
+    PARTIALLY_FAILED
+    "All tasks have finished processing and 50% or more were successful."
+    PARTIALLY_SUCCESSFUL
+    "All tasks succeeded."
+    SUCCESSFUL
+}
+
 enum LogicalOperator {
     AND
     OR
@@ -1877,6 +2134,24 @@ enum MergeMethod {
     MERGE
     REBASE
     SQUASH
+}
+
+enum Mergeable {
+    BLOCKED
+    MERGEABLE
+    UNKNOWN
+}
+
+enum PullRequestActionJobOrderField {
+    REPOSITORY
+    STATE
+    UPDATED_AT
+}
+
+enum PullRequestActionType {
+    APPROVE
+    CLOSE
+    MERGE
 }
 
 enum PullRequestState {
@@ -1943,6 +2218,8 @@ enum RecipeRunSummaryState {
     RUNNING
     "A worker was unavailable to display the results of this recipe."
     UNAVAILABLE
+    "A repository has been partially visited and is waiting for open workers to further process the recipe."
+    YIELDED
 }
 
 enum RecipeRunValidationState {
@@ -1972,6 +2249,14 @@ enum RepositoryFields {
     WEIGHT
 }
 
+enum ReviewDecision {
+    APPROVED
+    CHANGES_REQUESTED
+    REVIEW_NOT_REQUIRED
+    REVIEW_REQUIRED
+    UNKNOWN
+}
+
 enum ScmType {
     BITBUCKET
     BITBUCKET_CLOUD
@@ -1984,11 +2269,41 @@ enum SortOrder {
     DESC
 }
 
-enum VisualizationDeploymentState {
-    ERROR
-    FINISHED
-    LOADING
+enum TaskState {
+    "A task that was cancelled"
+    CANCELED
+    "A task that was processed but encountered an error."
+    FAILED
+    "A task that is actively being processed."
+    IN_PROGRESS
+    """
+
+    A task that was started but could not be completed in time.
+    A new processor can pick up the task and resume processing.
+    """
+    ORPHANED
+    "A task that is waiting to be processed."
     QUEUED
+    "A task that was processed successfully."
+    SUCCESSFUL
+}
+
+enum ToolConnectivityStatus {
+    "Moderne has successfully connected to this tool"
+    CONNECTED
+    "Moderne has not successfully connected to this tool"
+    DISCONNECTED
+    "Connectivity test was intentionally bypassed"
+    SKIPPED
+    "Not supported by the version of Moderne Agent"
+    UNKNOWN
+}
+
+enum VisualizationDeploymentState {
+    FAILED
+    IN_PROGRESS
+    QUEUED
+    SUCCESSFUL
 }
 
 enum VisualizationRunPriority {
@@ -2039,6 +2354,7 @@ scalar Duration
 "A JSON scalar"
 scalar JSON
 
+"A 64-bit signed integer"
 scalar Long
 
 "Contents may contain Markdown, HTML, or other text and should be passed through a Markdown parser by consumers"
@@ -2054,6 +2370,12 @@ The scalar value serializes and parses to a `string`.
 """
 scalar Path
 
+input ApprovalJobInput {
+    "ID of the commit job, also called commitId."
+    commitJobId: ID!
+    repositories: [RepositoryInput!]!
+}
+
 input AuditLogFilterInput {
     items: [AuditLogFilterItemInput!]!
     logicalOperator: LogicalOperator = AND
@@ -2063,6 +2385,50 @@ input AuditLogFilterItemInput {
     comparator: Comparator = CONTAINS
     field: AuditLogFilterColumns!
     value: String
+}
+
+input CliBuildResultInput {
+    buildJobLink: String
+    "The total time the build ran, in milliseconds. Inclusive of the time it take to build each step."
+    buildTimeMs: Long!
+    buildTools: [CliBuildTool!]!
+    cliVersion: String!
+    repository: RepositoryInput!
+    "The total source files contributed by this build step"
+    sourceFiles: Int!
+    success: Boolean!
+}
+
+input CliBuildTool {
+    """
+
+    The time it took to run this build tool step, in milliseconds. Exclusive of the time it takes to discover
+    and solve for constraints e.g. the appropriate Java version to use for a Gradle step.
+    """
+    buildTimeMs: Long!
+    """
+
+    In the case of Gradle or Maven, this will be the version of the build plugin injected into the build
+    to produce LST fragments. In the case of Bazel, Modjava, and Native this will be null, since the only
+    version number we could give would be the CLI version which is already specified on CliBuildResultInput.
+    """
+    pluginVersion: String
+    "The total source files contributed by this build step"
+    sourceFiles: Int!
+    step: CliBuildToolStep!
+    success: Boolean!
+    """
+
+    In the case of Gradle or Maven, this will be the version of Gradle or Maven itself, either driven by a wrapper
+    or the version installed on the system.
+    """
+    version: String
+}
+
+input CloseJobInput {
+    "ID of the commit job, also called commitId."
+    commitJobId: ID!
+    repositories: [RepositoryInput!]!
 }
 
 input CommitInput {
@@ -2142,6 +2508,14 @@ input GpgInput {
     publicKey: String!
 }
 
+input MergeJobInput {
+    "ID of the commit job, also called commitId."
+    commitJobId: ID!
+    deleteSourceBranch: Boolean!
+    mergeMethod: MergeMethod!
+    repositories: [RepositoryInput!]!
+}
+
 input OptionInput {
     "Example: `methodPattern`"
     name: String!
@@ -2163,6 +2537,16 @@ input PartialRepositoryInput {
     sourceFiles: [SourceFileInput!]!
 }
 
+input PullRequestActionJobFilterInput {
+    query: String
+    statuses: [TaskState!]
+}
+
+input PullRequestActionJobOrderInput {
+    direction: SortOrder!
+    field: PullRequestActionJobOrderField!
+}
+
 input RecipeInput {
     "Example: `org.openrewrite.java.search.FindMethods`"
     id: ID!
@@ -2174,12 +2558,14 @@ input RecipeRunFilterInput {
 }
 
 input RecipeRunInput {
-    "When supplied the repositories the recipe will be run on will be sourced from the given organization."
+    "When supplied, the repositories the recipe will be run on will be sourced from the given organization."
     organizationId: ID
     partialRepository: PartialRepositoryInput
     priority: RecipeRunPriority = NORMAL
     recipe: RecipeInput!
     repositoryFilter: [RepositoryInput!]
+    "When supplied, only run the recipe on the files that do not match any excluded files."
+    sourceFileFilter: SourceFileFilter
 }
 
 input RecipeValidationInput {
@@ -2206,6 +2592,11 @@ input RepositoryInput {
 input ScmAccessToken {
     type: ScmType!
     value: String!
+}
+
+input SourceFileFilter {
+    "List of file patterns to exclude from running the recipe."
+    excludes: [String!]
 }
 
 input SourceFileInput {

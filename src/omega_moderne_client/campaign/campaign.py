@@ -53,6 +53,8 @@ class Campaign:
     @classmethod
     def _load(cls, campaign_globals: 'CampaignGlobals', name: str) -> 'Campaign':
         campaign_yaml = yaml.safe_load(cls._load_file_contents(name, "campaign.yaml"))
+        if 'disclosure' not in campaign_yaml:
+            campaign_yaml['disclosure'] = True
         recipe_id = campaign_yaml['recipe']['id']
         branch = campaign_yaml['branch_name']
         commit_title, commit_extended = cls._load_file_contents_as_title_and_body(name, "commit.txt")
@@ -104,6 +106,7 @@ class Campaign:
 class CampaignGlobals:
     commit_footer: Template
     pr_message_footer_top: Template
+    pr_message_footer_disclosure: str
     pr_message_footer: str
     pr_message_footer_bottom: Template
 
@@ -112,6 +115,7 @@ class CampaignGlobals:
 
     def get_pr_message_footer(self, campaign_yaml: dict) -> str:
         return self.pr_message_footer_top.render(campaign_yaml) + \
+            (self.pr_message_footer_disclosure if campaign_yaml["disclosure"] else "") + \
             self.pr_message_footer + \
             self.pr_message_footer_bottom.render(campaign_yaml)
 
@@ -120,6 +124,7 @@ class CampaignGlobals:
         return cls(
             commit_footer=cls._load_file_contents_as_template("commit_footer.txt.liquid"),
             pr_message_footer_top=cls._load_file_contents_as_template("pr_message_footer_top.md.liquid"),
+            pr_message_footer_disclosure=cls._load_file_contents("pr_message_footer_disclosure.md"),
             pr_message_footer=cls._load_file_contents("pr_message_footer.md"),
             pr_message_footer_bottom=cls._load_file_contents_as_template("pr_message_footer_bottom.md.liquid"),
         )

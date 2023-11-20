@@ -29,6 +29,7 @@ setup(
             "rich>=11.0.0",
             "rich-argparse>=1.0.0",
             "isodate>=0.6.1",
+            "python-dotenv>=1.0.0"
         ],
         "github-scripts": [
             "croniter>=1.3.8",
