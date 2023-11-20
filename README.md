@@ -1,9 +1,7 @@
-### This is no longer a maintained repository and documents will be kept for historical tracking.
+# Moderne Client
 
-# Omega Moderne Client
-
-[![CI](https://github.com/ossf/omega-moderne-client/actions/workflows/ci.yml/badge.svg)](https://github.com/ossf/omega-moderne-client/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/ossf/omega-moderne-client/branch/main/graph/badge.svg?token=C05nBupDo7)](https://codecov.io/gh/ossf/omega-moderne-client)
+[![CI](https://github.com/JLLeitschuh/moderne-client/actions/workflows/ci.yml/badge.svg)](https://github.com/JLLeitschuh/moderne-client/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/JLLeitschuh/moderne-client/branch/main/graph/badge.svg?token=C05nBupDo7)](https://codecov.io/gh/JLLeitschuh/moderne-client)
 
 This is a client for the [Moderne](https://moderne.io) API.
 It is how the [OpenSSF Alpha Omega](https://openssf.org/community/alpha-omega/) project generates
