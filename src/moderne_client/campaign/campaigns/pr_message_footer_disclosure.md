@@ -15,7 +15,7 @@ You have a few options to perform vulnerability disclosure. However, I'd like to
    This has the advantage that, if you provide sufficient information, GitHub will automatically generate Dependabot alerts for your downstream consumers, resolving this vulnerability more quickly.
 2. Reach out to the team at Snyk to assist with CVE issuance.
    They can be reached at the [Snyk's Disclosure Email](mailto:report@snyk.io).
-   Note: Please include `OpenSSF: Omega Disclosure` in the subject of your email, so it is not missed.
+   Note: Please include `Jonathan Leitschuh` in the subject of your email, so it is not missed.
 
 ## Why didn't you disclose privately (ie. coordinated disclosure)?
 

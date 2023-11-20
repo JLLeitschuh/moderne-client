@@ -9,7 +9,7 @@ include tox.ini
 include *.config.yml
 include *.graphql
 recursive-include tests *.py
-recursive-include src/omega_moderne_client *.md *.txt *.yml *.yaml *.liquid
+recursive-include src/moderne_client *.md *.txt *.yml *.yaml *.liquid
 
 global-exclude *.py[co] __pycache__
 recursive-exclude .idea *

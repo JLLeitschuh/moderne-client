@@ -23,18 +23,18 @@ try:
     from rich.tree import Tree
     from rich_argparse import RichHelpFormatter
 except ImportError as e:
-    sys.stderr.write('It seems omega-moderne-client is not installed with cli option. \n'
-                     'Run `pip install "omega-moderne-client[cli]"` to fix this.')
+    sys.stderr.write('It seems moderne-client is not installed with cli option. \n'
+                     'Run `pip install "moderne-client[cli]"` to fix this.')
     sys.exit(1)
 
-from omega_moderne_client.campaign.campaign import Campaign
-from omega_moderne_client.campaign.campaign_executor import CampaignExecutor, PrintingCampaignExecutorProgressMonitor
-from omega_moderne_client.client.gpg_key_config import GpgKeyConfig
-from omega_moderne_client.client.moderne_client import ModerneClient
-from omega_moderne_client.client.client_types import RecipeRunSummary, Repository, RepositoryInput
-from omega_moderne_client.repository_filter import Filter, FilterDetailedReason, FilterReason, \
+from moderne_client.campaign.campaign import Campaign
+from moderne_client.campaign.campaign_executor import CampaignExecutor, PrintingCampaignExecutorProgressMonitor
+from moderne_client.client.gpg_key_config import GpgKeyConfig
+from moderne_client.client.moderne_client import ModerneClient
+from moderne_client.client.client_types import RecipeRunSummary, Repository, RepositoryInput
+from moderne_client.repository_filter import Filter, FilterDetailedReason, FilterReason, \
     FilteredRecipeExecutionResult
-from omega_moderne_client.util import verbose_timedelta, headers
+from moderne_client.util import verbose_timedelta, headers
 
 load_dotenv()
 

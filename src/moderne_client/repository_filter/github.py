@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional, List, Union
 from urllib.parse import urlparse, urlencode, urlunparse
 from urllib.robotparser import RobotFileParser
 
@@ -64,7 +64,7 @@ class GitHubRobotsTxtFilter(Filter):
         return _GitHubRobotFileParser(response.text)
 
     @staticmethod
-    def _build_url(base_url, path, args_dict=None) -> str:
+    def _build_url(base_url, path, args_dict=None) -> Union[bytes, str]:
         # Returns a list in the structure of urlparse.ParseResult
         if args_dict is None:
             args_dict = {}

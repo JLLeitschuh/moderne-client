@@ -5,7 +5,7 @@ import aiohttp
 import markdown
 from aiounittest.case import AsyncTestCase
 
-from omega_moderne_client.campaign.campaign import Campaign
+from moderne_client.campaign.campaign import Campaign
 
 
 def get_links_from_markdown(markdown_content: str) -> set[str]:

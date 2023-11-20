@@ -3,7 +3,7 @@
 import sys
 from typing import Generator
 
-from omega_moderne_client.campaign.campaign import Campaign
+from moderne_client.campaign.campaign import Campaign
 
 from croniter import croniter
 from datetime import datetime

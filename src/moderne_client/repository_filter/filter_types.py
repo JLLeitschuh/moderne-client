@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
 
-from omega_moderne_client.campaign.campaign_executor import RecipeExecutionResult
-from omega_moderne_client.client.client_types import Repository
+from moderne_client.campaign.campaign_executor import RecipeExecutionResult
+from moderne_client.client.client_types import Repository
 
 
 @dataclass(frozen=True)

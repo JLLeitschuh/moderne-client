@@ -66,7 +66,7 @@ To see more information about developing the CLI, see the [CONTRIBUTING](CONTRIB
 To use it as a script, you can run it like this:
 
 ```bash
-omega-moderne-client --help
+moderne-client --help
 ```
 
 ### Library Usage

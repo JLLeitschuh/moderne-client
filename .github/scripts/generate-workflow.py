@@ -3,7 +3,7 @@
 import os
 from textwrap import dedent
 
-from omega_moderne_client.campaign.campaign import Campaign
+from moderne_client.campaign.campaign import Campaign
 
 
 def ordinal(n: int) -> str:

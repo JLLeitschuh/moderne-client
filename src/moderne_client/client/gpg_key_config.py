@@ -1,7 +1,7 @@
 import os
-import gnupg
 from dataclasses import dataclass
 from typing import List
+import gnupg
 
 
 @dataclass(frozen=True)

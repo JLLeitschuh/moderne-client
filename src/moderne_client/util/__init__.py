@@ -1,4 +1,4 @@
-"""Utilities for the Omega Moderne Client"""
+"""Utilities for the Moderne Client"""
 from datetime import timedelta
 
 

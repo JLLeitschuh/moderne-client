@@ -3,14 +3,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="omega-moderne-client",
+    name="moderne-client",
     version="0.0.1",
     author="Jonathan Leitschuh",
     author_email="Jonathan.Leitschuh@linuxfoundation.org",
-    description="A client for the Omega Moderne service.",
+    description="A client for the Moderne service.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/ossf/omega-moderne-client",
+    url="https://github.com/JLLeitschuh/moderne-client",
     package_dir={'': 'src'},
     packages=find_packages(where="src"),
     include_package_data=True,
@@ -29,7 +29,8 @@ setup(
             "rich>=11.0.0",
             "rich-argparse>=1.0.0",
             "isodate>=0.6.1",
-            "python-dotenv>=1.0.0"
+            "python-dotenv>=1.0.0",
+            "python-gnupg>=0.5.1"
         ],
         "github-scripts": [
             "croniter>=1.3.8",
@@ -45,7 +46,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "omega-moderne-client=omega_moderne_client.__main__:cli",
+            "moderne-client=moderne_client.__main__:cli",
         ],
     },
 )

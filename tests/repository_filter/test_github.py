@@ -1,17 +1,17 @@
 # pylint: disable=protected-access
-from omega_moderne_client.repository_filter.filter_types import FilterReason
-from omega_moderne_client.repository_filter.github import GitHubRobotsTxtFilter
+from moderne_client.repository_filter.filter_types import FilterReason
+from moderne_client.repository_filter.github import GitHubRobotsTxtFilter
 
 
 def test_repository_with_gh_robots_txt():
     parser = GitHubRobotsTxtFilter._get_gh_robots_txt("JLLeitschuh", "code-sandbox", "main")
     assert parser is not None
     assert parser.applies_to("JLLeitschuh/security-research")
-    assert not parser.applies_to('ossf/omega-moderne-client')
+    assert not parser.applies_to('JLLeitschuh/moderne-client')
 
 
 def test_repository_without_gh_robots_txt():
-    parser = GitHubRobotsTxtFilter._get_gh_robots_txt("ossf", "omega-moderne-client", "main")
+    parser = GitHubRobotsTxtFilter._get_gh_robots_txt("JLLeitschuh", "moderne-client", "main")
     assert parser is None
 
 

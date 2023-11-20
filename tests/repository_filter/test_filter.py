@@ -1,10 +1,10 @@
-from omega_moderne_client.campaign.campaign_executor import RecipeExecutionResult
-from omega_moderne_client.client.client_types import Repository
-from omega_moderne_client.repository_filter import Filter
+from moderne_client.campaign.campaign_executor import RecipeExecutionResult
+from moderne_client.client.client_types import Repository
+from moderne_client.repository_filter import Filter
 
 OMEGA_MODERNE_CLIENT_REPOSITORY = Repository(
     origin="github.com",
-    path="ossf/omega-moderne-client",
+    path="JLLeitschuh/moderne-client",
     branch="main",
 )
 

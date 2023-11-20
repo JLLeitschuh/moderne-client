@@ -29,7 +29,7 @@ class Campaign:
         # language=yaml
         return f"""\
         type: specs.openrewrite.org/v1beta/recipe
-        name: 'org.openssf.research.SecurityFixRecipe (Alpha Omega Identifier: {uuid})'
+        name: 'org.openssf.research.SecurityFixRecipe (Id: {uuid})'
         displayName: Apply `{self.recipe_id}`
         description: >
          Applies the `{self.recipe_id}` to non-test sources first, if changes are made, then apply to all sources.
@@ -142,4 +142,4 @@ class CampaignGlobals:
 
 
 def _campaigns_dir() -> Traversable:
-    return files('omega_moderne_client.campaign').joinpath('campaigns')
+    return files('moderne_client.campaign').joinpath('campaigns')
