@@ -7,6 +7,7 @@ from .campaign import Campaign
 from ..client.client_types import RecipeRunSummary, Repository, RepositoryInput
 from ..client.gpg_key_config import GpgKeyConfig
 from ..client.moderne_client import ModerneClient
+from ..client.scm_config import ScmConfig
 
 
 @dataclass(frozen=True)
@@ -52,12 +53,14 @@ class CampaignExecutor:
             self,
             campaign: Campaign,
             gpg_key_config: GpgKeyConfig,
+            scm_config: ScmConfig,
             recipe_execution_result: 'RecipeExecutionResult'
     ) -> str:
         commit_id = await self.client.fork_and_pull_request(
             recipe_execution_result.run_id,
             campaign,
             gpg_key_config,
+            scm_config,
             recipe_execution_result.repositories
         )
         self.progress_monitor.on_pull_request_generation_started(commit_id)

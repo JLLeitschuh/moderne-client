@@ -7,6 +7,8 @@ import sys
 from dataclasses import dataclass
 from typing import Dict, Any, List
 
+from moderne_client.client.scm_config import ScmConfig
+
 try:
     from dotenv import load_dotenv
     from isodate import parse_duration
@@ -161,16 +163,20 @@ def print_recipe_filter_reason(filtered_repositories: Dict[Repository, List[Filt
 
 async def create_pull_request_for_recipe_results(
         gpg_key_config: GpgKeyConfig,
+        scm_config: ScmConfig,
         campaign: Campaign,
         executor: CampaignExecutor,
         filtered_recipe_execution_result: FilteredRecipeExecutionResult
 ):
     if not isinstance(gpg_key_config, GpgKeyConfig):
         raise ValueError("GPG key config must be provided to create pull requests")
+    if not isinstance(scm_config, ScmConfig):
+        raise ValueError("ScmConfig must be provided to create pull requests")
     console.print(f"Forking and creating pull requests for campaign {campaign.name}...")
     commit_id = await executor.launch_pull_request(
         campaign,
         gpg_key_config,
+        scm_config,
         filtered_recipe_execution_result
     )
     await executor.await_pull_request(commit_id=commit_id)
@@ -178,11 +184,13 @@ async def create_pull_request_for_recipe_results(
 
 async def run_recipe_maybe_generate_prs(args):
     if args.generate_prs:
-        gpg_key_config = GpgKeyConfig.load_from_gnugpg_env()
+        gpg_key_config = GpgKeyConfig.load()
+        scm_config = ScmConfig.load()
         console.print("Generate prs enabled. Pull requests will be created!")
     else:
         console.print("Generate prs not enabled. No pull requests will be created!")
         gpg_key_config = None
+        scm_config = None
 
     campaign = Campaign.load(args.campaign_id)
     async with ModerneClient.load_from_env(args.moderne_domain) as client:
@@ -211,6 +219,7 @@ async def run_recipe_maybe_generate_prs(args):
 
         await create_pull_request_for_recipe_results(
             gpg_key_config,
+            scm_config,
             campaign,
             executor,
             filtered_recipe_execution_result
@@ -219,9 +228,11 @@ async def run_recipe_maybe_generate_prs(args):
 
 async def recipe_attach(args):
     if args.generate_prs:
-        gpg_key_config = GpgKeyConfig.load_from_gnugpg_env()
+        gpg_key_config = GpgKeyConfig.load()
+        scm_config = ScmConfig.load()
     else:
         gpg_key_config = None
+        scm_config = None
 
     async with ModerneClient.load_from_env(args.moderne_domain) as client:
         console.print(f"View live on Moderne https://{client.domain}/results/{args.run_id}")
@@ -240,6 +251,7 @@ async def recipe_attach(args):
         campaign = Campaign.load(args.campaign_id)
         await create_pull_request_for_recipe_results(
             gpg_key_config,
+            scm_config,
             campaign,
             executor,
             filtered_recipe_execution_result

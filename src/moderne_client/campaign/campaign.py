@@ -29,16 +29,14 @@ class Campaign:
         # language=yaml
         return f"""\
         type: specs.openrewrite.org/v1beta/recipe
-        name: 'org.openssf.research.SecurityFixRecipe (Id: {uuid})'
+        name: 'org.jlleitschuh.research.SecurityFixRecipe (Id: {uuid})'
         displayName: Apply `{self.recipe_id}`
         description: >
          Applies the `{self.recipe_id}` to non-test sources first, if changes are made, then apply to all sources.
         tags:
             - security
         applicability:
-          anySource:
-            - org.openrewrite.java.search.IsLikelyNotTest
-            - {self.recipe_id}
+          - org.openrewrite.java.search.IsLikelyNotTest
         recipeList:
           - {self.recipe_id}
         """

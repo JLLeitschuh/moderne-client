@@ -15,6 +15,7 @@ from gql.client import AsyncClientSession
 from gql.transport.aiohttp import AIOHTTPTransport
 from graphql import DocumentNode, ExecutionResult, GraphQLSchema
 
+from moderne_client.client.scm_config import ScmConfig
 from .client_types import RecipeRunSummary, Repository, Commit, RecipeRunPerformance, RecipeRun, RecipeRunHistory, \
     Recipe, RepositoryInput
 from ..campaign.campaign import Campaign
@@ -304,6 +305,7 @@ class ModerneClient:
             recipe_id: str,
             campaign: Campaign,
             gpg_key_config: GpgKeyConfig,
+            scm_config: ScmConfig,
             repositories: List[Repository]
     ) -> str:
         fork_and_pull_request_query = gql(
@@ -341,7 +343,11 @@ class ModerneClient:
                 "message": campaign.commit_title,
                 "extendedMessage": base64.b64encode(campaign.commit_extended.encode()).decode(),
                 "recipeRunId": recipe_id,
-                "repositories": [r._asdict() for r in repositories]
+                "repositories": [r._asdict() for r in repositories],
+                "scmAccessTokens": {
+                    "type": scm_config.type,
+                    "value": scm_config.value,
+                }
             },
             "organization": "BulkSecurityGeneratorProjectV2",  # TODO: Make this configurable
             "pullRequestTitle": campaign.pr_title,
