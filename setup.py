@@ -6,7 +6,7 @@ setup(
     name="moderne-client",
     version="0.0.1",
     author="Jonathan Leitschuh",
-    author_email="Jonathan.Leitschuh@linuxfoundation.org",
+    author_email="Jonathan.Leitschuh@gmail.com",
     description="A client for the Moderne service.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

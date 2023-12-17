@@ -45,8 +45,9 @@ class CampaignExecutor:
                 self.progress_monitor.on_recipe_run_completed(run_id, state)
                 break
             await asyncio.sleep(5)
-
+        print(f"Querying recipe run {run_id} results...")
         repositories_with_results = await self.client.query_recipe_run_results_repositories(run_id)
+        print(f"Recipe run {run_id} results: {len(repositories_with_results)}")
         return RecipeExecutionResult(run_id=run_id, repositories=repositories_with_results)
 
     async def launch_pull_request(
@@ -66,12 +67,26 @@ class CampaignExecutor:
         self.progress_monitor.on_pull_request_generation_started(commit_id)
         return commit_id
 
+    async def rerun_pull_request(
+            self,
+            commit_id: str,
+            gpg_key_config: GpgKeyConfig,
+            scm_config: ScmConfig
+    ) -> str:
+        new_commit_id = await self.client.rerun_failed_commit_job(
+            commit_id,
+            gpg_key_config,
+            scm_config
+        )
+        self.progress_monitor.on_pull_request_generation_started(new_commit_id)
+        return new_commit_id
+
     async def await_pull_request(self, commit_id: str):
         while True:
             job_state = await self.client.query_commit_job_status(commit_id)
             state = job_state["state"]
             self.progress_monitor.on_pull_request_generation_progress(commit_id, state, job_state["commits"])
-            if state != "RUNNING":
+            if state != "IN_PROGRESS":
                 self.progress_monitor.on_pull_request_generation_completed(commit_id, state)
                 break
             await asyncio.sleep(5)

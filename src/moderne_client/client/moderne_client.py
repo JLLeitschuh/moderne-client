@@ -344,10 +344,10 @@ class ModerneClient:
                 "extendedMessage": base64.b64encode(campaign.commit_extended.encode()).decode(),
                 "recipeRunId": recipe_id,
                 "repositories": [r._asdict() for r in repositories],
-                "scmAccessTokens": {
+                "scmAccessTokens": [{
                     "type": scm_config.type,
                     "value": scm_config.value,
-                }
+                }]
             },
             "organization": "BulkSecurityGeneratorProjectV2",  # TODO: Make this configurable
             "pullRequestTitle": campaign.pr_title,
@@ -408,6 +408,38 @@ class ModerneClient:
         commit_job["commits"] = results
         commit_job["state"] = state
         return commit_job
+
+    async def rerun_failed_commit_job(
+            self,
+            id: str,
+            gpg_key_config: GpgKeyConfig,
+            scm_config: ScmConfig,
+    ):
+        rerun_failed_commit_job_query = gql(
+            # language=GraphQL
+            """
+            mutation rerunFailedCommitJobQuery(
+                $id: ID!,
+                $gpgKey: GpgInput!,
+                $scmAccessTokens: [ScmAccessToken!]
+            ) {
+                rerunFailedCommitJob(gpgKeys: $gpgKey, id: $id, scmAccessTokens: $scmAccessTokens)
+            }
+            """
+        )
+        params = {
+            "id": id,
+            "gpgKey": {
+                "passphrase": gpg_key_config.key_passphrase,
+                "privateKey": gpg_key_config.key_private_key.replace("\\n", "\n"),
+                "publicKey": gpg_key_config.key_public_key.replace("\\n", "\n")
+            },
+            "scmAccessTokens": [{
+                "type": scm_config.type,
+                "value": scm_config.value,
+            }]
+        }
+        return await self._client.execute(rerun_failed_commit_job_query, variable_values=params)
 
     async def schema(self) -> str:
         # noinspection PyPackageRequirements

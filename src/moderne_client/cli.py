@@ -209,7 +209,7 @@ async def run_recipe_maybe_generate_prs(args):
             )
         recipe_execution_result = await executor.await_recipe(run_id=run_id)
 
-        repository_filter = Filter.create_all()
+        repository_filter = Filter.create_for_campaign(campaign)
         filtered_recipe_execution_result = repository_filter.filter_repositories(recipe_execution_result)
         print_recipe_filter_reason(filtered_recipe_execution_result.filtered_repositories)
 
@@ -234,12 +234,15 @@ async def recipe_attach(args):
         gpg_key_config = None
         scm_config = None
 
+    # TODO: Load campaign from recipe execution result instead of args
+    campaign = Campaign.load(args.campaign_id)
+
     async with ModerneClient.load_from_env(args.moderne_domain) as client:
         console.print(f"View live on Moderne https://{client.domain}/results/{args.run_id}")
         executor = CampaignExecutor(client, ConsolePrintingCampaignExecutorProgressMonitor(client.domain))
         recipe_execution_result = await executor.await_recipe(args.run_id)
         # Display the filtered repositories
-        repository_filter = Filter.create_all()
+        repository_filter = Filter.create_for_campaign(campaign)
         filtered_recipe_execution_result = repository_filter.filter_repositories(recipe_execution_result)
         print_recipe_filter_reason(filtered_recipe_execution_result.filtered_repositories)
 
@@ -247,8 +250,6 @@ async def recipe_attach(args):
             console.print("Generate prs not enabled. Complete!")
             sys.exit(0)
 
-        # TODO: Load campaign from recipe execution result instead of args
-        campaign = Campaign.load(args.campaign_id)
         await create_pull_request_for_recipe_results(
             gpg_key_config,
             scm_config,
@@ -256,6 +257,19 @@ async def recipe_attach(args):
             executor,
             filtered_recipe_execution_result
         )
+
+
+async def rerun_failed_pull_requests(args):
+    gpg_key_config = GpgKeyConfig.load()
+    scm_config = ScmConfig.load()
+    async with ModerneClient.load_from_env(args.moderne_domain) as client:
+        executor = CampaignExecutor(client, ConsolePrintingCampaignExecutorProgressMonitor(client.domain))
+        new_commit_id = await executor.rerun_pull_request(
+            args.commit_id,
+            gpg_key_config,
+            scm_config
+        )
+        await executor.await_pull_request(commit_id=new_commit_id)
 
 
 async def pr_attach(args):
@@ -385,6 +399,7 @@ def cli():
         type=str,
         help='The Moderne recipe execution id run to attach to.'
     )
+    recipe_attach_parser.set_defaults(generate_prs=False)
     recipe_attach_parser.set_defaults(func=recipe_attach)
 
     recipe_attach_and_pull_request_parser = subparsers.add_parser(
@@ -414,6 +429,19 @@ def cli():
         help='The Moderne commit id to attach to.'
     )
     pr_attach_parser.set_defaults(func=pr_attach)
+
+    rerun_pull_request_parser = subparsers.add_parser(
+        'rerun-pull-request',
+        help='Rerun a pull request job.',
+        formatter_class=RichHelpFormatter,
+        parents=[parent],
+    )
+    rerun_pull_request_parser.add_argument(
+        'commit_id',
+        type=str,
+        help='The Moderne commit id to rerun.'
+    )
+    rerun_pull_request_parser.set_defaults(func=rerun_failed_pull_requests)
 
     campaign_printer_parser = subparsers.add_parser(
         'campaign',

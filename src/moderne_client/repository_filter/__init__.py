@@ -3,6 +3,7 @@ import abc
 from dataclasses import dataclass
 from typing import List, Dict, Set
 
+from moderne_client.campaign.campaign import Campaign
 from moderne_client.campaign.campaign_executor import RecipeExecutionResult
 from moderne_client.client.client_types import Repository
 from moderne_client.repository_filter.filter_types import FilterDetailedReason, FilteredRecipeExecutionResult, \
@@ -39,6 +40,19 @@ class Filter(abc.ABC):
             repositories=list(set(recipe_execution_result.repositories) - set(filtered_repositories.keys())),
             filtered_repositories=filtered_repositories
         )
+
+    @classmethod
+    def create_for_campaign(cls, campaign: 'Campaign') -> 'Filter':
+        """Create a filter for the given campaign.
+
+        :param campaign: The campaign to create the filter for.
+        :return: The filter to use.
+        """
+        if campaign.name in ['http_in_gradle_build', 'http_in_maven_pom']:
+            return Filter.create_filter(
+                {FilterReason.GH_ROBOTS_TXT, FilterReason.OTHER}
+            )
+        return Filter.create_all()
 
     @classmethod
     def create_all(cls) -> 'Filter':
