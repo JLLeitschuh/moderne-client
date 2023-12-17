@@ -13,6 +13,11 @@ class OtherRepositoryFilter(Filter):
             "Fork of the upstream `jeremylong/DependencyCheck`"
         ]
     })
+    organization_to_reason: Dict[str, List[str]] = field(default_factory=lambda: {
+        "jenkinsci": [
+            "Jenkins CI organization has opted out at the organization level."
+        ]
+    })
 
     def should_filter_repository(self, repository: 'Repository') -> List[FilterDetailedReason]:
         """Determine if the repository should be filtered out.
@@ -23,4 +28,8 @@ class OtherRepositoryFilter(Filter):
         if repository.as_url() in self.repository_to_reasons:
             return [FilterDetailedReason(reason=FilterReason.OTHER, details=reason) for reason in
                     self.repository_to_reasons[repository.as_url()]]
+        organization = repository.path.split('/')[0]
+        if organization in self.organization_to_reason:
+            return [FilterDetailedReason(reason=FilterReason.OTHER, details=reason) for reason in
+                    self.organization_to_reason[organization]]
         return []
