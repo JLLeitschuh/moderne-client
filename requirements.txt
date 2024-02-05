@@ -4,7 +4,7 @@ gql[all]>=3.4.1
 isodate>=0.6.1
 python-dotenv>=1.0.0
 
-pytz~=2023.3
+pytz~=2024.1
 croniter~=1.4.1
 requests>=2.28.2
 PyYAML>=6.0
