@@ -197,7 +197,7 @@ class ModerneClient:
         total_attempts = 20
         for attempt in range(0, total_attempts):
             try:
-                run_history = await GetAllRecipeRunHistory(self._client).get_first_page()
+                run_history = await GetPreviousRecipeRunHistory(self._client).get_first_page()
             except asyncio.exceptions.TimeoutError:
                 run_history = []
             for run in run_history:
@@ -439,7 +439,8 @@ class ModerneClient:
                 "value": scm_config.value,
             }]
         }
-        return await self._client.execute(rerun_failed_commit_job_query, variable_values=params)
+        result = await self._client.execute(rerun_failed_commit_job_query, variable_values=params)
+        return result["rerunFailedCommitJob"]
 
     async def schema(self) -> str:
         # noinspection PyPackageRequirements
@@ -493,12 +494,12 @@ class PagedQuery(abc.ABC, Generic[T]):
 
 
 @dataclass(frozen=True)
-class GetAllRecipeRunHistory(PagedQuery[RecipeRunHistory]):
+class GetPreviousRecipeRunHistory(PagedQuery[RecipeRunHistory]):
     query: DocumentNode = field(default=gql(
         # language=GraphQL
         """
-        query allRecipeRunHistory($after: String, $sortOrder: SortOrder = DESC, $filterBy: RecipeRunFilterInput) {
-            allRecipeRuns(after: $after, sortOrder: $sortOrder, filterBy: $filterBy, first: 20) {
+        query previousRecipeRunsHistory($after: String, $sortOrder: SortOrder = DESC, $filterBy: RecipeRunFilterInput) {
+            previousRecipeRuns(after: $after, sortOrder: $sortOrder, filterBy: $filterBy, first: 20) {
                 count
                 pageInfo {
                     hasNextPage
@@ -533,7 +534,7 @@ class GetAllRecipeRunHistory(PagedQuery[RecipeRunHistory]):
         return RecipeRunHistory(**node)
 
     def map_page(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        return data["allRecipeRuns"]
+        return data["previousRecipeRuns"]
 
     async def get_first_page(self) -> List[RecipeRunHistory]:
         return await self.get_page_results(None)
